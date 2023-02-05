@@ -1,0 +1,34 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:root {
+  font-size: 62.5%;
+  
+  --background: #1a1924;
+  --black: #282843;
+  --white: #e1e1e6;
+  --green: #00b37e;
+  --blackgreen: #07847e;
+  --purple: #633bbc;
+}
+
+body {
+  background-color: var(--background);
+  font-size: 1.6rem;
+  color: var(--white);
+}
+
+body * {
+  font-family: 'Roboto', sans-serif;
+  color: var(--white);
+}
+
+#root {
+  overflow: hidden;
+}
+
