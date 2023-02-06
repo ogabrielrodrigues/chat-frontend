@@ -17,9 +17,9 @@ export function Chat() {
           </div>
         </div>
 
-        <div className="close-chat">
+        <button className="close-chat">
           <X />
-        </div>
+        </button>
       </div>
       <div id="messages">
         <div className="last-seen">Today - 11:30AM</div>

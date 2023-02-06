@@ -47,6 +47,23 @@
   border-radius: 50%;
 }
 
+.close-chat {
+  width: 2.4rem;
+  height: 2.4rem;
+
+  cursor: pointer;
+}
+
+.close-chat svg {
+  width: 2.4rem;
+  height: 2.4rem;
+}
+
+.close-chat svg:hover {
+  transform: scale(1.1);
+  transition: all 0.5s ease;
+}
+
 .last-seen {
   margin-top: 2.6rem;
   font-size: 1.2rem;
