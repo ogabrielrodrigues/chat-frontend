@@ -80,40 +80,6 @@
   display: none;
 }
 
-.messages {
-  margin-top: 3rem; 
-  display: grid;
-  gap: 3rem;
-  font-size: 1.2rem;
-  line-height: 1.4rem;
-}
-
-.message-body {
-  margin-top: 1rem;
-  background-color: var(--purple);
-  padding: 1.4rem;
-  width: fit-content;
-
-  border-radius: 0rem .8rem .8rem .8rem;
-}
-
-.message:not(.you) {
-  width: 40vw;
-}
-
-.message.you .message-body {
-  background-color: var(--blackgreen);
-  border-radius: .8rem .8rem 0 .8rem;
-}
-
-.message.you {
-  margin-left: auto;
-}
-
-.message.you .top {
-  text-align: right;
-}
-
 .input-wrapper {
   display: flex;
   align-items: center;
@@ -154,4 +120,20 @@
 input, button {
   background: transparent;
   border: 0;
+}
+
+.online {
+  color: var(--green) !important;
+}
+
+.online::before {
+  background-color: var(--green) !important;
+}
+
+.offline {
+  color: var(--red) !important;
+}
+
+.offline::before {
+  background-color: var(--red) !important;
 }
