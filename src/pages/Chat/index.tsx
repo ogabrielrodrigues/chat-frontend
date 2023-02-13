@@ -16,7 +16,6 @@ export function Chat() {
   const { current: socket } = useRef(io.connect());
   const [messages, setMessages] = useState<MessageProps[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [room, setRoom] = useState("");
   const [user, setUser] = useState<User>({
     id: uuid().split("-")[0],
     status: true,
@@ -30,7 +29,9 @@ export function Chat() {
 
     socket.on("ready", console.log);
 
-    socket.on("joined_on_room", (room: string) => setRoom(room));
+    socket.on("joined_on_room", (room: string) =>
+      console.log("you stay on: %s", room)
+    );
 
     socket.on("replies", onMessageReceived);
 
