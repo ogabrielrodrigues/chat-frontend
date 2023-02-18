@@ -5,6 +5,7 @@ import { io } from "../../lib/socketio";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import { Message, MessageProps } from "../../components/Message";
+import { useParams } from "react-router-dom";
 
 interface User {
   id: string;
@@ -14,6 +15,7 @@ interface User {
 
 export function Chat() {
   const { current: socket } = useRef(io.connect());
+  const { room } = useParams();
   const [messages, setMessages] = useState<MessageProps[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [user, setUser] = useState<User>({
@@ -29,9 +31,9 @@ export function Chat() {
 
     socket.on("ready", console.log);
 
-    socket.on("joined_on_room", (room: string) =>
-      console.log("you stay on: %s", room)
-    );
+    socket.emit("join", room);
+
+    socket.on("joined", (room: string) => console.log("you stay on: %s", room));
 
     socket.on("replies", onMessageReceived);
 
@@ -48,6 +50,7 @@ export function Chat() {
       username: user.username,
       content: newMessage,
       sendedAt: [hrs, scs].join(":"),
+      room,
     });
 
     setNewMessage("");
