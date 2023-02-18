@@ -15,13 +15,13 @@ interface User {
 
 export function Chat() {
   const { current: socket } = useRef(io.connect());
-  const { room } = useParams();
+  const { room, user: usr } = useParams();
   const [messages, setMessages] = useState<MessageProps[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [user, setUser] = useState<User>({
     id: uuid().split("-")[0],
     status: true,
-    username: `test-${uuid().split("-")[0]}`,
+    username: String(usr),
   });
 
   useEffect(() => {

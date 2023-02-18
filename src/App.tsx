@@ -4,7 +4,7 @@ import { Sign } from "./pages/Sign";
 
 function App() {
   const routes = createBrowserRouter([
-    { path: "/chat/:room", element: <Chat /> },
+    { path: "/chat/:room/:user", element: <Chat /> },
     { path: "/sign", element: <Sign /> },
   ]);
 
