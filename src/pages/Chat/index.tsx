@@ -1,43 +1,68 @@
-import "./styles.css";
 import { v4 as uuid } from "uuid";
+import { useParams } from "react-router-dom";
 import { X, PaperPlaneRight } from "phosphor-react";
-import { io } from "../../lib/socketio";
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { toast, Toaster } from "react-hot-toast";
+import { FormEvent, useCallback, useContext, useEffect, useState } from "react";
 
 import { Message, MessageProps } from "../../components/Message";
-import { useParams } from "react-router-dom";
+import { SocketContext } from "../../contexts/SocketContext";
+
+import "./styles.css";
 
 interface User {
   id: string;
   username: string;
   status: boolean;
+  profile: {
+    avatarUrl: string;
+  };
 }
 
 export function Chat() {
-  const { current: socket } = useRef(io.connect());
-  const { room, user: usr } = useParams();
+  const { socket } = useContext(SocketContext);
+  const { room, user } = useParams();
+
   const [messages, setMessages] = useState<MessageProps[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [user, setUser] = useState<User>({
+  const [lastMessageSended, setLastMessageSended] = useState("");
+
+  const [usr, setUsr] = useState<User>({
     id: uuid().split("-")[0],
     status: true,
-    username: String(usr),
+    username: String(user),
+    profile: {
+      avatarUrl: "https://randomuser.me/api/portraits/women/55.jpg",
+    },
   });
+
+  useEffect(() => {
+    socket.connect();
+
+    const ready = (message: { status: string }) => {
+      console.log(message.status);
+
+      socket.on("ready", ready);
+
+      return () => {
+        socket.off("ready", ready);
+      };
+    };
+  }, [socket]);
 
   useEffect(() => {
     const onMessageReceived = (message: MessageProps) => {
       setMessages((messages) => [...messages, message]);
+      setLastMessageSended(message.sendedAt);
     };
 
-    socket.on("ready", console.log);
+    socket.emit("join", { user: usr, room });
 
-    socket.emit("join", room);
-
-    socket.on("joined", (room: string) => console.log("you stay on: %s", room));
+    socket.on("joined", console.log);
 
     socket.on("replies", onMessageReceived);
 
     return () => {
+      socket.off("joined");
       socket.off("replies", onMessageReceived);
     };
   }, [socket]);
@@ -46,8 +71,8 @@ export function Chat() {
     const [hrs, scs] = new Date().toLocaleTimeString().split(":");
 
     socket.emit("new_message", {
-      authorId: user.id,
-      username: user.username,
+      authorId: usr.id,
+      username: usr.username,
       content: newMessage,
       sendedAt: [hrs, scs].join(":"),
       room,
@@ -68,14 +93,11 @@ export function Chat() {
     <div className="app">
       <div className="top">
         <div className="user-info">
-          <img
-            src="https://randomuser.me/api/portraits/women/55.jpg"
-            alt="User image"
-          />
+          <img src={usr.profile.avatarUrl} alt="User image" />
           <div className="user-status">
-            <strong>{user.username}</strong>
-            <div className={`status ${user.status ? "online" : "offline"}`}>
-              {user.status ? "Online" : "Offline"}
+            <strong>{usr.username}</strong>
+            <div className={`status ${usr.status ? "online" : "offline"}`}>
+              {usr.status ? "Online" : "Offline"}
             </div>
           </div>
         </div>
@@ -85,7 +107,9 @@ export function Chat() {
         </button>
       </div>
       <div id="messages">
-        <div className="last-seen">Today - 11:30AM</div>
+        <div className="last-seen">
+          {lastMessageSended ? lastMessageSended : ""}
+        </div>
 
         <div className="messages">
           {messages.map((message, i) => (
@@ -94,7 +118,7 @@ export function Chat() {
               content={message.content}
               username={message.username}
               sendedAt={message.sendedAt}
-              loggedUser={user.id}
+              loggedUser={usr.id}
               key={`${i}-${message.authorId}`}
             />
           ))}
@@ -113,6 +137,7 @@ export function Chat() {
           </button>
         </div>
       </form>
+      <Toaster />
     </div>
   );
 }
