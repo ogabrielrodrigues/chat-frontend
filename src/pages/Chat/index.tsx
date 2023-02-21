@@ -1,14 +1,6 @@
-import { v4 as uuid } from "uuid";
 import { useParams } from "react-router-dom";
 import { X, PaperPlaneRight } from "phosphor-react";
-import {
-  FormEvent,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Form } from "@unform/web";
 import { FormHandles, SubmitHandler } from "@unform/core";
 
@@ -40,7 +32,6 @@ export function Chat() {
   const messagesRef = useRef<HTMLDivElement>(null);
 
   const [messages, setMessages] = useState<MessageProps[]>([]);
-  const [newMessage, setNewMessage] = useState("");
   const [lastMessageSended, setLastMessageSended] = useState("");
 
   const [usr, setUsr] = useState<User>({
@@ -59,7 +50,12 @@ export function Chat() {
   useEffect(() => {
     const onPrevMessages = ({ messages }: { messages: MessageProps[] }) => {
       setMessages(messages);
-      setLastMessageSended(messages[messages.length - 1].sendedAt);
+      if (messages) {
+        setLastMessageSended(messages[messages.length - 1].sendedAt);
+      } else {
+        setLastMessageSended("");
+      }
+
       messagesRef.current?.lastElementChild?.scrollIntoView();
     };
 
@@ -84,25 +80,24 @@ export function Chat() {
     return () => socket.off("message", onMessage);
   }, [messages]);
 
-  function sendMessage() {
+  function sendMessage(message: string) {
     const [hrs, scs] = new Date().toLocaleTimeString().split(":");
 
     socket.emit("message", {
       user: usr,
-      content: newMessage,
+      content: message,
       sendedAt: [hrs, scs].join(":"),
       room,
     });
   }
 
-  const handleSubmit: SubmitHandler<{ message: string }> = ({
-    message,
-  }: SubmitData) => {
-    setNewMessage(message);
+  const handleSubmit: SubmitHandler<SubmitData> = (
+    { message }: SubmitData,
+    { reset }
+  ) => {
+    sendMessage(message);
 
-    if (newMessage.trim()) {
-      sendMessage();
-    }
+    reset();
   };
 
   return (
