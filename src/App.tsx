@@ -3,7 +3,7 @@ import { Chat } from "./pages/Chat";
 
 function App() {
   const routes = createBrowserRouter([
-    { path: "/chat/:room/:user", element: <Chat /> },
+    { path: "/chat/:room/:user/:id", element: <Chat /> },
   ]);
 
   return <RouterProvider router={routes}></RouterProvider>;
