@@ -1,15 +1,24 @@
 import { v4 as uuid } from "uuid";
 import { useParams } from "react-router-dom";
 import { X, PaperPlaneRight } from "phosphor-react";
-import { toast, Toaster } from "react-hot-toast";
-import { FormEvent, useCallback, useContext, useEffect, useState } from "react";
+import {
+  FormEvent,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { Form } from "@unform/web";
+import { FormHandles, SubmitHandler } from "@unform/core";
 
 import { Message, MessageProps } from "../../components/Message";
-import { SocketContext } from "../../contexts/SocketContext";
 
 import "./styles.css";
+import { io } from "socket.io-client";
+import Input from "../../components/Input";
 
-interface User {
+export interface User {
   id: string;
   username: string;
   status: boolean;
@@ -18,76 +27,83 @@ interface User {
   };
 }
 
+interface SubmitData {
+  message: string;
+}
+
+const socket = io(import.meta.env.VITE_SOCKET_URL);
+socket.on("connect", () => console.log("Socket.io connected."));
+
 export function Chat() {
-  const { socket } = useContext(SocketContext);
-  const { room, user } = useParams();
+  const { room, user, id } = useParams();
+  const formRef = useRef<FormHandles>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
 
   const [messages, setMessages] = useState<MessageProps[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [lastMessageSended, setLastMessageSended] = useState("");
 
   const [usr, setUsr] = useState<User>({
-    id: uuid().split("-")[0],
-    status: true,
+    id: String(id),
     username: String(user),
+    status: true,
     profile: {
       avatarUrl: "https://randomuser.me/api/portraits/women/55.jpg",
     },
   });
 
+  const joinInRoom = useCallback(() => {
+    socket.emit("join_room", { user: usr, room });
+  }, [usr, room]);
+
   useEffect(() => {
-    socket.connect();
-
-    const ready = (message: { status: string }) => {
-      console.log(message.status);
-
-      socket.on("ready", ready);
-
-      return () => {
-        socket.off("ready", ready);
-      };
+    const onPrevMessages = ({ messages }: { messages: MessageProps[] }) => {
+      setMessages(messages);
+      setLastMessageSended(messages[messages.length - 1].sendedAt);
+      messagesRef.current?.lastElementChild?.scrollIntoView();
     };
-  }, [socket]);
 
+    socket.on("prev_messages", onPrevMessages);
+    return () => {
+      joinInRoom();
+
+      socket.off("prev_messages", onPrevMessages);
+    };
+  }, [joinInRoom]);
+
+  // @ts-ignore
   useEffect(() => {
-    const onMessageReceived = (message: MessageProps) => {
+    const onMessage = (message: MessageProps) => {
       setMessages((messages) => [...messages, message]);
       setLastMessageSended(message.sendedAt);
     };
 
-    socket.emit("join", { user: usr, room });
+    socket.on("message", onMessage);
+    messagesRef.current?.lastElementChild?.scrollIntoView();
 
-    socket.on("joined", console.log);
+    return () => socket.off("message", onMessage);
+  }, [messages]);
 
-    socket.on("replies", onMessageReceived);
-
-    return () => {
-      socket.off("joined");
-      socket.off("replies", onMessageReceived);
-    };
-  }, [socket]);
-
-  const sendMessage = useCallback(() => {
+  function sendMessage() {
     const [hrs, scs] = new Date().toLocaleTimeString().split(":");
 
-    socket.emit("new_message", {
-      authorId: usr.id,
-      username: usr.username,
+    socket.emit("message", {
+      user: usr,
       content: newMessage,
       sendedAt: [hrs, scs].join(":"),
       room,
     });
-
-    setNewMessage("");
-  }, [socket, newMessage]);
-
-  function handleSubmit(event: FormEvent) {
-    event.preventDefault();
-
-    if (newMessage.trim() === "") return;
-
-    sendMessage();
   }
+
+  const handleSubmit: SubmitHandler<{ message: string }> = ({
+    message,
+  }: SubmitData) => {
+    setNewMessage(message);
+
+    if (newMessage.trim()) {
+      sendMessage();
+    }
+  };
 
   return (
     <div className="app">
@@ -111,33 +127,26 @@ export function Chat() {
           {lastMessageSended ? lastMessageSended : ""}
         </div>
 
-        <div className="messages">
+        <div className="messages" ref={messagesRef}>
           {messages.map((message, i) => (
             <Message
-              authorId={message.authorId}
+              user={message.user}
               content={message.content}
-              username={message.username}
               sendedAt={message.sendedAt}
               loggedUser={usr.id}
-              key={`${i}-${message.authorId}`}
+              key={`${i}-${message.user.id}`}
             />
           ))}
         </div>
       </div>
-      <form onSubmit={handleSubmit}>
+      <Form ref={formRef} onSubmit={handleSubmit}>
         <div className="input-wrapper">
-          <input
-            type="text"
-            placeholder="Type your message"
-            onChange={(e) => setNewMessage(e.target.value)}
-            value={newMessage}
-          />
-          <button type="submit">
+          <Input name="message" type="text" placeholder="Type your message" />
+          <button>
             <PaperPlaneRight />
           </button>
         </div>
-      </form>
-      <Toaster />
+      </Form>
     </div>
   );
 }
