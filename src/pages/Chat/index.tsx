@@ -1,14 +1,14 @@
 import { useParams } from "react-router-dom";
 import { X, PaperPlaneRight } from "phosphor-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Form } from "@unform/web";
 import { FormHandles, SubmitHandler } from "@unform/core";
 
 import { Message, MessageProps } from "../../components/Message";
 
 import "./styles.css";
-import { io } from "socket.io-client";
 import Input from "../../components/Input";
+import { SocketContext } from "../../contexts/SocketContext";
 
 export interface User {
   id: string;
@@ -23,10 +23,9 @@ interface SubmitData {
   message: string;
 }
 
-const socket = io(import.meta.env.VITE_SOCKET_URL);
-socket.on("connect", () => console.log("Socket.io connected."));
-
 export function Chat() {
+  const socket = useContext(SocketContext);
+
   const { room, user, id } = useParams();
   const formRef = useRef<FormHandles>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
@@ -39,7 +38,8 @@ export function Chat() {
     username: String(user),
     status: true,
     profile: {
-      avatarUrl: "https://randomuser.me/api/portraits/women/55.jpg",
+      avatarUrl:
+        "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png",
     },
   });
 
@@ -48,36 +48,44 @@ export function Chat() {
   }, [usr, room]);
 
   useEffect(() => {
-    const onPrevMessages = ({ messages }: { messages: MessageProps[] }) => {
+    joinInRoom();
+  }, []);
+
+  const onPrevMessages = useCallback(
+    ({ messages }: { messages: MessageProps[] }) => {
       setMessages(messages);
-      if (messages) {
-        setLastMessageSended(messages[messages.length - 1].sendedAt);
-      } else {
-        setLastMessageSended("");
+
+      const lastMessage = messages[messages.length - 1];
+
+      if (lastMessage !== undefined) {
+        setLastMessageSended(lastMessage.sendedAt);
       }
 
       messagesRef.current?.lastElementChild?.scrollIntoView();
-    };
+    },
+    [messages]
+  );
 
-    socket.on("prev_messages", onPrevMessages);
-    return () => {
-      joinInRoom();
-
-      socket.off("prev_messages", onPrevMessages);
-    };
-  }, [joinInRoom]);
-
-  // @ts-ignore
-  useEffect(() => {
-    const onMessage = (message: MessageProps) => {
+  const onMessage = useCallback(
+    (message: MessageProps) => {
       setMessages((messages) => [...messages, message]);
       setLastMessageSended(message.sendedAt);
-    };
 
+      messagesRef.current?.lastElementChild?.scrollIntoView();
+    },
+    [messages]
+  );
+
+  useEffect(() => {
     socket.on("message", onMessage);
+    socket.on("prev_messages", onPrevMessages);
+
     messagesRef.current?.lastElementChild?.scrollIntoView();
 
-    return () => socket.off("message", onMessage);
+    return () => {
+      socket.off("prev_messages", onPrevMessages);
+      socket.off("message", onMessage);
+    };
   }, [messages]);
 
   function sendMessage(message: string) {

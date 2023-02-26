@@ -1,4 +1,5 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { socket, SocketContext } from "./contexts/SocketContext";
 import { Chat } from "./pages/Chat";
 
 function App() {
@@ -6,7 +7,11 @@ function App() {
     { path: "/chat/:room/:user/:id", element: <Chat /> },
   ]);
 
-  return <RouterProvider router={routes}></RouterProvider>;
+  return (
+    <SocketContext.Provider value={socket}>
+      <RouterProvider router={routes}></RouterProvider>
+    </SocketContext.Provider>
+  );
 }
 
 export default App;
