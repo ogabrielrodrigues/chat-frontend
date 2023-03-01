@@ -1,4 +1,5 @@
-import { User } from "../pages/Chat";
+import { memo } from "react";
+import { User } from "../contexts/UserContext";
 import "../styles/message.css";
 
 export interface MessageProps {
@@ -8,7 +9,7 @@ export interface MessageProps {
   loggedUser: string;
 }
 
-export function Message({ user, content, sendedAt, loggedUser }: MessageProps) {
+function Message({ user, content, sendedAt, loggedUser }: MessageProps) {
   return (
     <div
       className={`message ${user.id === loggedUser ? "you" : ""}`}
@@ -21,3 +22,5 @@ export function Message({ user, content, sendedAt, loggedUser }: MessageProps) {
     </div>
   );
 }
+
+export default memo(Message);

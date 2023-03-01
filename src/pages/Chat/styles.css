@@ -8,6 +8,7 @@
   display: grid;
   grid-template-rows: max-content 1fr max-content;
   margin: auto;
+  z-index: 999;
 }
 
 .top {

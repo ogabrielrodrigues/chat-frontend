@@ -4,20 +4,12 @@ import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Form } from "@unform/web";
 import { FormHandles, SubmitHandler } from "@unform/core";
 
-import { Message, MessageProps } from "../../components/Message";
+import Message, { MessageProps } from "../../components/Message";
 
 import "./styles.css";
 import Input from "../../components/Input";
 import { SocketContext } from "../../contexts/SocketContext";
-
-export interface User {
-  id: string;
-  username: string;
-  status: boolean;
-  profile: {
-    avatarUrl: string;
-  };
-}
+import { UserContext } from "../../contexts/UserContext";
 
 interface SubmitData {
   message: string;
@@ -25,31 +17,22 @@ interface SubmitData {
 
 export function Chat() {
   const socket = useContext(SocketContext);
+  const { user, logout } = useContext(UserContext);
 
-  const { room, user, id } = useParams();
+  const { room } = useParams();
   const formRef = useRef<FormHandles>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
 
   const [messages, setMessages] = useState<MessageProps[]>([]);
   const [lastMessageSended, setLastMessageSended] = useState("");
 
-  const [usr, setUsr] = useState<User>({
-    id: String(id),
-    username: String(user),
-    status: true,
-    profile: {
-      avatarUrl:
-        "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png",
-    },
-  });
-
   const joinInRoom = useCallback(() => {
-    socket.emit("join_room", { user: usr, room });
-  }, [usr, room]);
+    socket.emit("join_room", { user: { ...user, room }, room });
+  }, [room, user]);
 
   useEffect(() => {
     joinInRoom();
-  }, []);
+  }, [room, user]);
 
   const onPrevMessages = useCallback(
     ({ messages }: { messages: MessageProps[] }) => {
@@ -92,7 +75,7 @@ export function Chat() {
     const [hrs, scs] = new Date().toLocaleTimeString().split(":");
 
     socket.emit("message", {
-      user: usr,
+      user: user,
       content: message,
       sendedAt: [hrs, scs].join(":"),
       room,
@@ -111,17 +94,22 @@ export function Chat() {
   return (
     <div className="app">
       <div className="top">
-        <div className="user-info">
-          <img src={usr.profile.avatarUrl} alt="User image" />
-          <div className="user-status">
-            <strong>{usr.username}</strong>
-            <div className={`status ${usr.status ? "online" : "offline"}`}>
-              {usr.status ? "Online" : "Offline"}
+        {user && (
+          <div className="user-info">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"
+              alt="User image"
+            />
+            <div className="user-status">
+              <strong>{user.username}</strong>
+              <div className={`status ${user ? "online" : "offline"}`}>
+                {user ? "Online" : "Offline"}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        <button className="close-chat">
+        <button className="close-chat" onClick={logout}>
           <X />
         </button>
       </div>
@@ -136,7 +124,7 @@ export function Chat() {
               user={message.user}
               content={message.content}
               sendedAt={message.sendedAt}
-              loggedUser={usr.id}
+              loggedUser={user?.id!}
               key={`${i}-${message.user.id}`}
             />
           ))}
