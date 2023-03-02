@@ -28,7 +28,7 @@ export function Sign() {
 
   const verifyUser = useCallback(() => {
     if (user) {
-      navigator("/chat/teste");
+      navigator("/rooms");
     }
   }, [user]);
 

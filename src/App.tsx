@@ -3,10 +3,12 @@ import { Sign } from "./pages/Sign";
 import { socket, SocketContext } from "./contexts/SocketContext";
 import { UserContextProvider } from "./contexts/UserContext";
 import { Chat } from "./pages/Chat";
+import { Rooms } from "./pages/Rooms";
 
 function App() {
   const routes = createBrowserRouter([
     { path: "/", index: true, element: <Sign /> },
+    { path: "/rooms", element: <Rooms /> },
     { path: "/chat/:room", element: <Chat /> },
   ]);
 
