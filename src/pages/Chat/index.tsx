@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { X, PaperPlaneRight } from "phosphor-react";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Form } from "@unform/web";
@@ -17,6 +17,7 @@ interface SubmitData {
 
 export function Chat() {
   const socket = useContext(SocketContext);
+  const navigator = useNavigate();
   const { user, logout } = useContext(UserContext);
 
   const { room } = useParams();
@@ -31,6 +32,10 @@ export function Chat() {
   }, [room, user]);
 
   useEffect(() => {
+    if (!user) {
+      navigator("/", { replace: true });
+    }
+
     joinInRoom();
   }, [room, user]);
 
