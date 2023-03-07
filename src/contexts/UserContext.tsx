@@ -39,11 +39,10 @@ interface UserContextProps {
 export const UserContext = createContext({} as UserContextProps);
 
 export function UserContextProvider(props: UserContextProviderProps) {
-  const [authenticated, setAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
   async function signUp({ username, email, password }: SignUpRequest) {
-    const { status, data } = await axios.post(
+    const { status } = await axios.post(
       `${import.meta.env.VITE_BACKEND_URL}/user`,
       {
         username,
@@ -99,24 +98,26 @@ export function UserContextProvider(props: UserContextProviderProps) {
     window.localStorage.removeItem("simplewebchat_authenticated_user");
   }
 
-  const checkIfUserAuthenticated = useCallback(() => {
-    const token = localStorage.getItem("simplewebchat_auth_token");
-
-    if (!token) {
-      setUser(null);
-    } else {
-      const decodedToken = decode(token) as JwtPayload;
-
-      if (decodedToken.exp! < decodedToken.iat!) {
-        setUser(null);
-      } else {
-        setUser(decodedToken.user);
-      }
-    }
-  }, []);
-
   useEffect(() => {
-    return () => checkIfUserAuthenticated();
+    const getUser = () => {
+      const token = localStorage.getItem("simplewebchat_auth_token");
+
+      if (!token) {
+        return;
+      }
+
+      const { user } = decode(token) as JwtPayload;
+
+      window.localStorage.setItem(
+        "simplewebchat_authenticated_user",
+        // @ts-ignore
+        JSON.stringify(user)
+      );
+
+      setUser(user);
+    };
+
+    getUser();
   }, []);
 
   return (

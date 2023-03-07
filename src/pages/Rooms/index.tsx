@@ -1,9 +1,8 @@
 import { FormHandles, SubmitHandler } from "@unform/core";
 import { Form } from "@unform/web";
-import { useCallback, useContext, useRef } from "react";
+import { useCallback, useContext, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Input from "../../components/Input";
-import { SocketContext } from "../../contexts/SocketContext";
 import { UserContext } from "../../contexts/UserContext";
 import "./styles.css";
 
@@ -20,16 +19,15 @@ function formatRoomCode(room: string) {
 }
 
 export function Rooms() {
-  const socket = useContext(SocketContext);
   const { user, logout } = useContext(UserContext);
   const navigator = useNavigate();
   const formRef = useRef<FormHandles>(null);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout();
 
     window.location.reload();
-  };
+  }, [logout]);
 
   const handleSubmit: SubmitHandler<SubmitData> = ({ room }, { reset }) => {
     if (room.trim() === "") {

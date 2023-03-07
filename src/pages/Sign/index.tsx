@@ -1,6 +1,5 @@
 import { FormHandles, SubmitHandler } from "@unform/core";
 import { useNavigate } from "react-router-dom";
-import { decode, JwtPayload } from "jsonwebtoken-esm";
 import { Form } from "@unform/web";
 import { useCallback, useContext, useEffect, useRef } from "react";
 import { UserContext } from "../../contexts/UserContext";
@@ -24,7 +23,7 @@ export function Sign() {
   const modalSignInFormRef = useRef<FormHandles>(null);
   const navigator = useNavigate();
 
-  const { signUp, signIn, user, setUser } = useContext(UserContext);
+  const { signUp, signIn, user } = useContext(UserContext);
 
   const verifyUser = useCallback(() => {
     if (user) {
@@ -55,6 +54,7 @@ export function Sign() {
 
     if (response) {
       window.alert("Usuário logado!");
+      navigator("/rooms");
     } else {
       window.alert("Erro!");
     }
@@ -64,7 +64,7 @@ export function Sign() {
 
   useEffect(() => {
     verifyUser();
-  }, [user]);
+  }, []);
 
   return (
     <div className="modal_wrapper">

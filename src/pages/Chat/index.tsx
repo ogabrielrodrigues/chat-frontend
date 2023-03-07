@@ -32,9 +32,9 @@ export function Chat() {
   }, [room, user]);
 
   useEffect(() => {
-    if (!user) {
-      navigator("/", { replace: true });
-    }
+    // if (!user) {
+    //   navigator("/", { replace: true });
+    // }
 
     joinInRoom();
   }, [room, user]);

@@ -8,7 +8,6 @@
 }
 
 .rooms_wrapper {
-  box-shadow: 2px 4px 12px var(--green);
   border-radius: .6rem;
   background: var(--black);
   padding: 2.5rem 2.5rem;
