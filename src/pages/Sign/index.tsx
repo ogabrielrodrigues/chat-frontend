@@ -25,12 +25,6 @@ export function Sign() {
 
   const { signUp, signIn, user } = useContext(UserContext);
 
-  const verifyUser = useCallback(() => {
-    if (user) {
-      navigator("/rooms");
-    }
-  }, [user]);
-
   const handleSignUp: SubmitHandler<SubmitSignUp> = async (
     { username, email, password },
     { reset }
@@ -63,8 +57,14 @@ export function Sign() {
   };
 
   useEffect(() => {
+    const verifyUser = () => {
+      if (user) {
+        navigator("/rooms");
+      }
+    };
+
     verifyUser();
-  }, []);
+  }, [user]);
 
   return (
     <div className="modal_wrapper">
