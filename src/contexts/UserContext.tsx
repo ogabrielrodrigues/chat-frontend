@@ -96,6 +96,8 @@ export function UserContextProvider(props: UserContextProviderProps) {
   function logout() {
     window.localStorage.removeItem("simplewebchat_auth_token");
     window.localStorage.removeItem("simplewebchat_authenticated_user");
+
+    setUser(null);
   }
 
   useEffect(() => {

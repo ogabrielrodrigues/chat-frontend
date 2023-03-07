@@ -33,3 +33,11 @@ body * {
   overflow: hidden;
 }
 
+body button {
+  transition: all ease 0.3s;
+}
+
+body button:hover {
+  opacity: 70%;
+}
+

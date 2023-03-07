@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { X, PaperPlaneRight } from "phosphor-react";
+import { SignOut, PaperPlaneRight } from "phosphor-react";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Form } from "@unform/web";
 import { FormHandles, SubmitHandler } from "@unform/core";
@@ -32,10 +32,6 @@ export function Chat() {
   }, [room, user]);
 
   useEffect(() => {
-    // if (!user) {
-    //   navigator("/", { replace: true });
-    // }
-
     joinInRoom();
   }, [room, user]);
 
@@ -91,31 +87,28 @@ export function Chat() {
     { message }: SubmitData,
     { reset }
   ) => {
+    if (message.trim() === "") {
+      reset();
+      return;
+    }
+
     sendMessage(message);
 
     reset();
   };
 
+  const handleLogout = useCallback(() => {
+    logout();
+
+    navigator("/", { replace: true });
+  }, []);
+
   return (
     <div className="app">
       <div className="top">
-        {user && (
-          <div className="user-info">
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"
-              alt="User image"
-            />
-            <div className="user-status">
-              <strong>{user.username}</strong>
-              <div className={`status ${user ? "online" : "offline"}`}>
-                {user ? "Online" : "Offline"}
-              </div>
-            </div>
-          </div>
-        )}
-
-        <button className="close-chat" onClick={logout}>
-          <X />
+        <button className="close-chat" onClick={handleLogout}>
+          Logout
+          <SignOut weight="bold" />
         </button>
       </div>
       <div id="messages">
@@ -136,9 +129,14 @@ export function Chat() {
         </div>
       </div>
       <Form ref={formRef} onSubmit={handleSubmit}>
-        <div className="input-wrapper">
-          <Input name="message" type="text" placeholder="Type your message" />
-          <button>
+        <div className={`input-wrapper ${!user ? "disabled" : ""}`}>
+          <Input
+            name="message"
+            type="text"
+            placeholder="Type your message"
+            disabled={user ? false : true}
+          />
+          <button disabled={user ? false : true}>
             <PaperPlaneRight />
           </button>
         </div>
